@@ -1,21 +1,18 @@
-// ── STICKY NAV ──
+// ── STICKY NAV + FLOATING BUTTONS ──
 const navbar = document.getElementById('navbar');
+const backToTop = document.getElementById('backToTop');
+const goHome = document.getElementById('goHome');
+
 window.addEventListener('scroll', () => {
   navbar.classList.toggle('scrolled', window.scrollY > 60);
+  const show = window.scrollY > 400;
+  backToTop.classList.toggle('visible', show);
+  goHome.classList.toggle('visible', show);
 });
 
-// ── SCROLL REVEAL ──
-// Fires ONCE per element when it enters the viewport. Never re-triggers.
-const reveals = document.querySelectorAll('.reveal');
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.12 });
-reveals.forEach(el => revealObserver.observe(el));
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
 
 // ── HAMBURGER MOBILE MENU ──
 const hamburger = document.getElementById('hamburger');
@@ -36,8 +33,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ── CLICK-ONLY NAVIGATION ──
-// Sections are only navigated to on click, never triggered by scrolling.
+// ── CLICK NAVIGATION — instant jump, no scrolling animation ──
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', (e) => {
     const href = anchor.getAttribute('href');
@@ -47,7 +43,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       e.preventDefault();
       const offset = navbar.offsetHeight + 8;
       const top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
+      window.scrollTo({ top, behavior: 'instant' });
+      closeMenu();
     }
   });
 });
