@@ -1,68 +1,47 @@
-// ── SLIDE-BASED NAVIGATION ──
-const wrapper = document.getElementById('page-wrapper');
-const navbar  = document.getElementById('navbar');
+// ── TAB-BASED NAVIGATION (no scrolling) ──
+
+const navbar   = document.getElementById('navbar');
+const sections = document.querySelectorAll('.slide');
 const backToTop = document.getElementById('backToTop');
 const goHome    = document.getElementById('goHome');
 
-// Slides: hero, about, projects, impact, events, cta, footer
-const slides = Array.from(wrapper.children).filter(el =>
-  el.tagName === 'SECTION' || el.tagName === 'FOOTER' || el.classList.contains('cta-section')
-);
+// Show only the active section
+function showSection(id) {
+  sections.forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
 
-// ── DOT INDICATORS ──
-const dotsContainer = document.createElement('div');
-dotsContainer.className = 'slide-dots';
-const dots = slides.map((slide, i) => {
-  const dot = document.createElement('button');
-  dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
-  dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-  dot.addEventListener('click', () => scrollToSlide(i));
-  dotsContainer.appendChild(dot);
-  return dot;
-});
-document.body.appendChild(dotsContainer);
+  const isHome = id === 'hero';
+  navbar.classList.toggle('scrolled', !isHome);
+  backToTop.classList.toggle('visible', !isHome);
+  goHome.classList.toggle('visible', !isHome);
 
-function scrollToSlide(index) {
-  slides[index].scrollIntoView({ behavior: 'smooth' });
+  // Update dot indicators
+  dots.forEach(d => d.classList.toggle('active', d.dataset.target === id));
 }
 
-// ── ACTIVE DOT on scroll ──
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const idx = slides.indexOf(entry.target);
-      if (idx >= 0) {
-        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-        // show floating buttons when not on first slide
-        const show = idx > 0;
-        backToTop.classList.toggle('visible', show);
-        goHome.classList.toggle('visible', show);
-        // nav scrolled style
-        navbar.classList.toggle('scrolled', idx > 0);
-      }
-    }
-  });
-}, { root: wrapper, threshold: 0.5 });
-
-slides.forEach(s => observer.observe(s));
-
-// ── BACK TO TOP ──
-backToTop.addEventListener('click', () => scrollToSlide(0));
-goHome.addEventListener('click', (e) => { e.preventDefault(); scrollToSlide(0); });
+// Start on hero
+showSection('hero');
 
 // ── NAV LINK CLICKS ──
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', (e) => {
     const href = anchor.getAttribute('href');
-    if (href === '#') { e.preventDefault(); scrollToSlide(0); return; }
-    const target = document.querySelector(href);
-    if (target) {
+    if (!href || href === '#') { e.preventDefault(); showSection('hero'); closeMenu(); return; }
+    const id = href.replace('#', '');
+    const target = document.getElementById(id);
+    if (target && target.classList.contains('slide')) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
+      showSection(id);
       closeMenu();
     }
+    // external links (donate etc) pass through normally
   });
 });
+
+// ── HOME / BACK BUTTONS ──
+backToTop.addEventListener('click', () => showSection('hero'));
+goHome.addEventListener('click', (e) => { e.preventDefault(); showSection('hero'); });
 
 // ── HAMBURGER MOBILE MENU ──
 const hamburger = document.getElementById('hamburger');
@@ -70,7 +49,21 @@ const mobileMenu = document.getElementById('mobileMenu');
 hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
 function closeMenu() { mobileMenu.classList.remove('open'); }
 document.addEventListener('click', (e) => {
-  if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
+  if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target))
     mobileMenu.classList.remove('open');
-  }
 });
+
+// ── DOT INDICATORS ──
+const slideIds = Array.from(sections).map(s => s.id);
+const dotsContainer = document.createElement('div');
+dotsContainer.className = 'slide-dots';
+const dots = slideIds.map(id => {
+  const dot = document.createElement('button');
+  dot.className = 'slide-dot';
+  dot.dataset.target = id;
+  dot.setAttribute('aria-label', `Go to ${id}`);
+  dot.addEventListener('click', () => showSection(id));
+  dotsContainer.appendChild(dot);
+  return dot;
+});
+document.body.appendChild(dotsContainer);
