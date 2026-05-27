@@ -1,5 +1,15 @@
-// ── SLIDE-BASED NAVIGATION ──
+// ── DISABLE FREE SCROLLING ──
 const wrapper = document.getElementById('page-wrapper');
+
+wrapper.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+wrapper.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+document.addEventListener('keydown', e => {
+  const blocked = [' ', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
+  if (blocked.includes(e.key)) e.preventDefault();
+});
+
+// ── SLIDE-BASED NAVIGATION ──
 const navbar  = document.getElementById('navbar');
 const backToTop = document.getElementById('backToTop');
 const goHome    = document.getElementById('goHome');
@@ -22,29 +32,27 @@ const dots = slides.map((slide, i) => {
 });
 document.body.appendChild(dotsContainer);
 
+// ── INITIALISE SLIDE POSITIONS ──
+slides.forEach((slide, i) => {
+  slide.style.transform = i === 0 ? 'translateY(0)' : 'translateY(100vh)';
+});
+
+let currentSlide = 0;
+
 function scrollToSlide(index) {
-  slides[index].scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── ACTIVE DOT on scroll ──
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const idx = slides.indexOf(entry.target);
-      if (idx >= 0) {
-        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-        // show floating buttons when not on first slide
-        const show = idx > 0;
-        backToTop.classList.toggle('visible', show);
-        goHome.classList.toggle('visible', show);
-        // nav scrolled style
-        navbar.classList.toggle('scrolled', idx > 0);
-      }
-    }
+  if (index < 0 || index >= slides.length) return;
+  slides.forEach((slide, i) => {
+    slide.style.transform = i < index  ? 'translateY(-100vh)'
+                          : i === index ? 'translateY(0)'
+                          :               'translateY(100vh)';
   });
-}, { root: wrapper, threshold: 0.5 });
-
-slides.forEach(s => observer.observe(s));
+  currentSlide = index;
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+  const show = index > 0;
+  backToTop.classList.toggle('visible', show);
+  goHome.classList.toggle('visible', show);
+  navbar.classList.toggle('scrolled', index > 0);
+}
 
 // ── BACK TO TOP ──
 backToTop.addEventListener('click', () => scrollToSlide(0));
@@ -58,7 +66,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     const target = document.querySelector(href);
     if (target) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
+      const idx = slides.indexOf(target);
+      if (idx >= 0) scrollToSlide(idx);
       closeMenu();
     }
   });

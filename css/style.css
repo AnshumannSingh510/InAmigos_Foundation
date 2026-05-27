@@ -30,30 +30,31 @@ img { max-width: 100%; display: block; }
 /* Main scroll container */
 #page-wrapper {
   height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Every section is a full slide */
+/* Every section is a full slide — positioned absolutely, moved by JS */
 #page-wrapper > section,
 #page-wrapper > footer {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  position: absolute;
+  top: 0; left: 0; right: 0;
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
 /* CTA section also a full slide */
 #page-wrapper > .cta-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  position: absolute;
+  top: 0; left: 0; right: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
 /* ── NAV ── */
